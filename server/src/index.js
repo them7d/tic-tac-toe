@@ -6,6 +6,8 @@ import bcrypt from "bcrypt";
 const app = express();
 app.use(cors());
 app.use(express.json());
+import dotenv from "dotenv";
+dotenv.config();
 const api_key = process.env.API_KEY;
 const api_secret = process.env.SECRET_KEY;
 const serverClient = StreamChat.getInstance(api_key, api_secret);
@@ -18,6 +20,13 @@ app.post("/signup", async (req, res) => {
             res.json({ token, userId, firstName, lastName, hashedPassword, username });
       }
       catch (error) {
+            res.json(error);
+      }
+});
+app.get("/api", async (req, res) => {
+      try {
+            res.json({ api: process.env.SECRET_KEY, home: "moon" });
+      } catch (error) {
             res.json(error);
       }
 });

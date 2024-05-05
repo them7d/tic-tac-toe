@@ -2,6 +2,7 @@ import { React, useState, useEffect } from 'react'
 import { useChannelStateContext, useChatContext } from "stream-chat-react"
 import Square from './square'
 import { Patterns } from '../WinningPatterns'
+import "./board.css"
 function Board({ result, setResult }) {
       const [board, setBoard] = useState(["", "", "", "", "", "", "", "", ""]);
       const [player, setPlayer] = useState("X");
@@ -32,7 +33,7 @@ function Board({ result, setResult }) {
       const checkWin = () => {
             Patterns.forEach((currPattern) => {
                   const firstPlayer = board[currPattern[0]];
-                  if (firstPlayer == "") return
+                  if (firstPlayer == "") return;
                   let foundWinningPattern = true;
                   currPattern.forEach((idx) => {
                         if (board[idx] != firstPlayer) {
@@ -40,8 +41,7 @@ function Board({ result, setResult }) {
                         }
                   });
                   if (foundWinningPattern) {
-                        alert("Winner", board[currPattern[0]]);
-                        setResult({ winner: board[currPattern[0]], state: "Won" });
+                        setResult({ winner: board[currPattern[0]], state: "won" });
                   }
             })
       }
@@ -54,7 +54,6 @@ function Board({ result, setResult }) {
                   }
             });
             if (filled) {
-                  alert("Tie");
                   setResult({ winner: "none", state: "tie" });
             }
       }
@@ -73,8 +72,42 @@ function Board({ result, setResult }) {
                   }));
             }
       });
+      const resetGame = () => {
+            setBoard(board.map(() => {
+                  return "";
+            }));
+            setResult({ winner: "none", state: "none" });
+      }
+      const resetBoard = async () => {
+            await channel.sendEvent({
+                  type: "reset-board",
+                  data: { player }
+            });
+            resetGame();
+      }
+      channel.on((event) => {
+            if (event.type === "reset-board") {
+                  resetGame();
+            }
+      });
+      // button reset
+      const ResetBtn = () => {
+            return (
+                  <>
+                        <button onClick={resetBoard} className="flex items-center justify-center w-fit mx-auto mt-7 px-5 py-1 text-base text-white bg-blue-500 rounded-full cursor-pointer">
+                              reset
+                        </button>
+                  </>
+            )
+      }
       return (
             <div className='board bg-[white] mx-auto max-w-fit my-10 border border-collapse'>
+                  {result.state !== "none" && <div className='winned text-3xl font-bold text-center'>
+                        <div className="inner-win p-10">
+                              {result.state === "won" ? `${result.winner} won` : "It's a tie"}
+                              {ResetBtn()}
+                        </div>
+                  </div>}
                   <div className="row flex justify-strench">
                         <Square chooseSquare={() => { chooseSquare(0) }} val={board[0]} />
                         <Square chooseSquare={() => { chooseSquare(1) }} val={board[1]} />
